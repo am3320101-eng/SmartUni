@@ -1,8 +1,18 @@
 package com.example.demo.entity;
+import com.example.demo.model.Status;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @Table(
         name = "attendances",
         uniqueConstraints = {
@@ -24,17 +34,4 @@ public class Attendance {
     @ManyToOne
     @JoinColumn(name = "session_id")
     private Session session;
-
-    public enum Status { PRESENT, ABSENT }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
-    public Session getSession() { return session; }
-    public void setSession(Session session) { this.session = session; }
 }

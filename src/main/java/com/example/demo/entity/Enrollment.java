@@ -1,6 +1,12 @@
 package com.example.demo.entity;
 
+import com.example.demo.model.ContollmentStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,6 +16,10 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(columnNames = {"student_id", "session_id"})
         }
 )
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Enrollment {
 
     @Id
@@ -17,14 +27,10 @@ public class Enrollment {
     private Long id;
 
     private LocalDateTime contollmentDate;
-    public enum contollmentstatus {
-        ACTIVE,
-        DROPPED
 
-    }
 
     @Enumerated(EnumType.STRING)
-    private contollmentstatus status;
+    private ContollmentStatus status;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
