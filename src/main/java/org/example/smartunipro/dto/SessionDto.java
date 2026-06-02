@@ -3,16 +3,16 @@ package org.example.smartunipro.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.example.smartunipro.model.Auditable;
 import org.example.smartunipro.model.SessionType;
 
 import java.time.LocalDateTime;
-
+@Data
 @Getter
 @Setter
-
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionDto {
+public class SessionDto extends Auditable {
 
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         private Long id;
@@ -20,6 +20,7 @@ public class SessionDto {
         @NotNull(message = "Location ID is required")
         private Long locationId;
 
+        /** ID of a User with role = INSTRUCTOR */
         @NotNull(message = "Instructor ID is required")
         private Long instructorId;
 
@@ -41,10 +42,12 @@ public class SessionDto {
         @Size(min = 3, max = 100, message = "Session name must be between 3 and 100 characters")
         private String name;
 
-
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         private String courseName;
 
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         private String instructorName;
 
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         private String locationName;
 }
