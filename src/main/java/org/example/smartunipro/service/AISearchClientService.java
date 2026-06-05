@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 public class AISearchClientService {
 
-    @Value("${AI_SERVICE_URL}") // استخدمنا الاسم الكبير القياسي اللي حطيناه على ريل واي
+    @Value("${AI_SERVICE_URL}")
     private String aiServiceUrl;
 
     private final RestTemplate restTemplate;
@@ -34,7 +34,7 @@ public class AISearchClientService {
             // 1. تظبيط الـ Headers الأساسية لرفع الملفات Multipart
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.add("ngrok-skip-browser-warning", "true"); // لتخطي حماية نجروك لو استخدمتوه
+            headers.add("ngrok-skip-browser-warning", "true"); // لتخطي حماية نجروك
 
             // 2. تجهيز الـ Body من نوع MultiValueMap المخصص للملفات
             MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
@@ -50,7 +50,7 @@ public class AISearchClientService {
             // دمج الـ Body والـ Headers
             HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            // 3. إرسال الطلب الفعلي أونلاين لسيرفر البايثون الخاص بزميلك
+            // 3. إرسال الطلب الفعلي أونلاين لسيرفر البايثون
             ResponseEntity<Map> response = restTemplate.postForEntity(
                     aiServiceUrl + "/chat",
                     entity,

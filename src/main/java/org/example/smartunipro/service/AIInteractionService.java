@@ -24,7 +24,7 @@ public class AIInteractionService {
     private final AIInteractionRepository aiInteractionRepository;
     private final AIInteractionMapper     aiInteractionMapper;
     private final UserRepository          userRepository;
-    private final AISearchClientService   aiSearchClientService; // ربطنا الكلاينت هنا بجد
+    private final AISearchClientService   aiSearchClientService; // ربطنا الكلاينت هنا
 
     public AIInteractionDto ask(AIInteractionDto dto, MultipartFile file) {
         User student = resolveStudent(dto.getStudentId());
