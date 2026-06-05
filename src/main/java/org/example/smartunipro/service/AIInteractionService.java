@@ -11,6 +11,7 @@ import org.example.smartunipro.repository.AIInteractionRepository;
 import org.example.smartunipro.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,13 +24,17 @@ public class AIInteractionService {
     private final AIInteractionRepository aiInteractionRepository;
     private final AIInteractionMapper     aiInteractionMapper;
     private final UserRepository          userRepository;
+    private final AISearchClientService   aiSearchClientService; // ربطنا الكلاينت هنا بجد
 
-    public AIInteractionDto ask(AIInteractionDto dto) {
+    public AIInteractionDto ask(AIInteractionDto dto, MultipartFile file) {
         User student = resolveStudent(dto.getStudentId());
+
+        // نداء سيرفر الـ AI الحقيقي وتمرير الملف الحقيقي والسؤال له
+        String aiAnswer = aiSearchClientService.askAI(dto.getQuestion(), file);
 
         AIInteraction interaction = new AIInteraction();
         interaction.setQuestion(dto.getQuestion());
-        interaction.setAnswer(generateAnswer(dto.getQuestion()));
+        interaction.setAnswer(aiAnswer); // حفظ الإجابة الحقيقية اللي رجعت من البايثون
         interaction.setAskedAt(LocalDateTime.now());
         interaction.setStudent(student);
 
@@ -59,9 +64,5 @@ public class AIInteractionService {
                     "User with id " + id + " is not a STUDENT", HttpStatus.BAD_REQUEST);
         }
         return user;
-    }
-
-    private String generateAnswer(String question) {
-        return "This is a placeholder answer for: \"" + question + "\"";
     }
 }

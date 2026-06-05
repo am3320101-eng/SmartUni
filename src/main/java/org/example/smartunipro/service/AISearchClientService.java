@@ -7,16 +7,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class AISearchClientService {
 
-    @Value("${ai.service.url}")
+    @Value("${AI_SERVICE_URL}") // استخدمنا الاسم الكبير القياسي اللي حطيناه على ريل واي
     private String aiServiceUrl;
 
     private final RestTemplate restTemplate;
@@ -25,42 +27,46 @@ public class AISearchClientService {
         this.restTemplate = new RestTemplate();
     }
 
-    public String askAI(String question, Long studentId) {
-        // 1. تجهيز الـ Request Body
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("question", question);
-
+    public String askAI(String question, MultipartFile file) {
         try {
-            log.info("Sending to AI URL: {}/chat with question: {}", aiServiceUrl, question);
+            log.info("Sending Multipart File to AI URL: {}/chat", aiServiceUrl);
 
-            // 2. تظبيط الـ Headers الأساسية للـ JSON
+            // 1. تظبيط الـ Headers الأساسية لرفع الملفات Multipart
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.add("ngrok-skip-browser-warning", "true"); // لتخطي حماية نجروك لو استخدمتوه
 
-            //  السطر السحري لتخطي حماية Ngrok عشان يمرر الطلب مباشرة للبايثون
-            headers.add("ngrok-skip-browser-warning", "true");
+            // 2. تجهيز الـ Body من نوع MultiValueMap المخصص للملفات
+            MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+            requestBody.add("question", question);
 
-            // دمج الـ Body مع الـ Headers في كائن واحد
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            // تحويل الـ MultipartFile لكائن يفهمه الـ RestTemplate أثناء الرفع أونلاين
+            if (file != null && !file.isEmpty()) {
+                requestBody.add("file", file.getResource());
+            } else {
+                return "خطأ: لم يتم رفع ملف PDF.";
+            }
 
-            // 3. إرسال الطلب للسيرفر
+            // دمج الـ Body والـ Headers
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // 3. إرسال الطلب الفعلي أونلاين لسيرفر البايثون الخاص بزميلك
             ResponseEntity<Map> response = restTemplate.postForEntity(
                     aiServiceUrl + "/chat",
                     entity,
                     Map.class
             );
 
-            // 4. قراءة الإجابة المرتجعة
+            // 4. قراءة الإجابة وفك الـ Map المرتجع
             if (response.getBody() != null && response.getBody().containsKey("answer")) {
                 return (String) response.getBody().get("answer");
             }
 
-            return "لم أتمكن من الحصول على إجابة من السيرفر.";
+            return "لم أتمكن من الحصول على إجابة من سيرفر الـ AI.";
 
         } catch (Exception e) {
-            // طباعة تفاصيل الخطأ كاملة في الـ Console لو حصلت أي مشكلة
             log.error("AI connection failed. Error Details: ", e);
-            return "عذراً، خدمة الذكاء الاصطناعي غير متوفرة حالياً.";
+            return "عذراً، خدمة الذكاء الاصطناعي غير متوفرة حالياً بسبب: " + e.getMessage();
         }
     }
 }
