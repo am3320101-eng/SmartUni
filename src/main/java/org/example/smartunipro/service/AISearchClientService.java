@@ -7,11 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -27,37 +25,26 @@ public class AISearchClientService {
         this.restTemplate = new RestTemplate();
     }
 
-    public String askAI(String question, MultipartFile file) {
+    public String askAI(String question) {
         try {
-            log.info("Sending Multipart File to AI URL: {}/chat", aiServiceUrl);
+            log.info("Sending Clean JSON to AI URL: {}/chat with question: {}", aiServiceUrl, question);
 
-            // 1. تظبيط الـ Headers الأساسية لرفع الملفات Multipart
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.add("ngrok-skip-browser-warning", "true"); // لتخطي حماية نجروك
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("ngrok-skip-browser-warning", "true");
 
-            // 2. تجهيز الـ Body من نوع MultiValueMap المخصص للملفات
-            MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-            requestBody.add("question", question);
+            // بنبعت السؤال النصي القصير في الـ body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("question", question);
 
-            // تحويل الـ MultipartFile لكائن يفهمه الـ RestTemplate أثناء الرفع أونلاين
-            if (file != null && !file.isEmpty()) {
-                requestBody.add("file", file.getResource());
-            } else {
-                return "خطأ: لم يتم رفع ملف PDF.";
-            }
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            // دمج الـ Body والـ Headers
-            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            // 3. إرسال الطلب الفعلي أونلاين لسيرفر البايثون
             ResponseEntity<Map> response = restTemplate.postForEntity(
                     aiServiceUrl + "/chat",
                     entity,
                     Map.class
             );
 
-            // 4. قراءة الإجابة وفك الـ Map المرتجع
             if (response.getBody() != null && response.getBody().containsKey("answer")) {
                 return (String) response.getBody().get("answer");
             }

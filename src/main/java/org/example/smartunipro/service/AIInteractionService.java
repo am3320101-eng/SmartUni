@@ -11,7 +11,6 @@ import org.example.smartunipro.repository.AIInteractionRepository;
 import org.example.smartunipro.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,17 +23,17 @@ public class AIInteractionService {
     private final AIInteractionRepository aiInteractionRepository;
     private final AIInteractionMapper     aiInteractionMapper;
     private final UserRepository          userRepository;
-    private final AISearchClientService   aiSearchClientService; // ربطنا الكلاينت هنا
+    private final AISearchClientService   aiSearchClientService;
 
-    public AIInteractionDto ask(AIInteractionDto dto, MultipartFile file) {
+    public AIInteractionDto ask(AIInteractionDto dto) {
         User student = resolveStudent(dto.getStudentId());
 
-        // نداء سيرفر الـ AI الحقيقي وتمرير الملف الحقيقي والسؤال له
-        String aiAnswer = aiSearchClientService.askAI(dto.getQuestion(), file);
+
+        String aiAnswer = aiSearchClientService.askAI(dto.getQuestion());
 
         AIInteraction interaction = new AIInteraction();
         interaction.setQuestion(dto.getQuestion());
-        interaction.setAnswer(aiAnswer); // حفظ الإجابة الحقيقية اللي رجعت من البايثون
+        interaction.setAnswer(aiAnswer);
         interaction.setAskedAt(LocalDateTime.now());
         interaction.setStudent(student);
 
@@ -45,7 +44,7 @@ public class AIInteractionService {
     }
 
     public List<AIInteractionDto> getHistory(Long studentId) {
-        resolveStudent(studentId); // validates existence + role
+        resolveStudent(studentId);
         return aiInteractionRepository
                 .findByStudent_IdOrderByAskedAtDesc(studentId)
                 .stream()
@@ -53,16 +52,10 @@ public class AIInteractionService {
                 .collect(Collectors.toList());
     }
 
-    // ── helpers ───────────────────────────────────────────────────────────────
-
     private User resolveStudent(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new CustomException(
                         "User not found with id: " + id, HttpStatus.NOT_FOUND));
-        if (user.getRole() != Role.STUDENT) {
-            throw new CustomException(
-                    "User with id " + id + " is not a STUDENT", HttpStatus.BAD_REQUEST);
-        }
         return user;
     }
 }
