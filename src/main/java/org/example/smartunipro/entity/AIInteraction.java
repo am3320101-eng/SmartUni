@@ -18,10 +18,14 @@ public class AIInteraction extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    // تعديل متوافق مع MySQL لتحمل النصوص الطويلة جداً
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String question;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    // تعديل متوافق مع MySQL لتحمل إجابات الـ AI الطويلة جداً
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String answer;
 
     @Column(name = "asked_at", nullable = false)
