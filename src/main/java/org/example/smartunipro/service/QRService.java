@@ -16,6 +16,7 @@ import org.example.smartunipro.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
@@ -70,6 +71,7 @@ public class QRService {
      * @param sessionId  the session to generate QR for
      * @return QRResponseDto with rawToken + qrImageBase64
      */
+    @Transactional(readOnly = true)
     public QRDto generateForSession(Long sessionId) {
 
         // ── 1. load session ───────────────────────────────────────────────────
@@ -144,6 +146,7 @@ public class QRService {
      * @param sessionId the session the student is trying to attend
      * @return VerificationResult — valid or invalid with reason
      */
+    @Transactional(readOnly = true)
     public VerificationResult verifyQR(String token, Long sessionId) {
         try {
             Claims claims = Jwts.parser()
