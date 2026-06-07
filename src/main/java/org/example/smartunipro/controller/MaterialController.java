@@ -6,8 +6,10 @@ import org.example.smartunipro.dto.MaterialDto;
 import org.example.smartunipro.dto.MaterialFilterDto;
 import org.example.smartunipro.service.MaterialServices;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,10 +20,15 @@ public class MaterialController {
 
     private final MaterialServices services;
 
-    @PostMapping("/upload")
+    // التعديل هنا لاستقبال ملف الـ PDF والبيانات بشكل صحيح من بوست مان والفرونت إند
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MaterialDto> materialUpload(
-            @Valid @RequestBody MaterialDto request) {
-        return new ResponseEntity<>(services.materialUpload(request), HttpStatus.CREATED);
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("courseId") Long courseId,
+            @RequestParam("title") String title) {
+
+        // قمي بتمرير الـ Parameters الجديدة للـ Service لتنفيذ الحفظ والتوجيه لسيرفر الـ AI
+        return new ResponseEntity<>(services.materialUpload(file, courseId, title), HttpStatus.CREATED);
     }
 
     @GetMapping
