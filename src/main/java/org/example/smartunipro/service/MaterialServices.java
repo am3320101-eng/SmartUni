@@ -56,7 +56,7 @@ public class MaterialServices extends FilterableService<Material, MaterialDto, M
         Course course = resolveCourse(courseId);
 
 
-        String pythonAiServerUrl = "https://your-app.up.railway.app/upload";
+        String pythonAiServerUrl = "https://web-production-16de0.up.railway.app/upload";
         String generatedPdfUrl = "";
 
         try {
