@@ -1,5 +1,7 @@
 package org.example.smartunipro.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,9 +22,11 @@ public class AISearchClientService {
     private String aiServiceUrl;
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public AISearchClientService() {
         this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
     }
 
     public String askAI(String question) {
@@ -33,20 +37,33 @@ public class AISearchClientService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.add("ngrok-skip-browser-warning", "true");
 
-            // بنبعت السؤال النصي القصير في الـ body
-            Map<String, Object> requestBody = new HashMap<>();
+            Map<String, String> requestBody = new HashMap<>();
             requestBody.put("question", question);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(
+            ResponseEntity<String> response = restTemplate.postForEntity(
                     aiServiceUrl + "/chat",
                     entity,
-                    Map.class
+                    String.class
             );
 
-            if (response.getBody() != null && response.getBody().containsKey("answer")) {
-                return (String) response.getBody().get("answer");
+            log.info("AI service raw response: {}", response.getBody());
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+            if (root.has("answer")) {
+                JsonNode answerNode = root.get("answer");
+                if (answerNode.isTextual()) {
+                    return answerNode.asText();
+                } else if (answerNode.isArray()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (JsonNode node : answerNode) {
+                        sb.append(node.asText()).append(" ");
+                    }
+                    return sb.toString().trim();
+                } else {
+                    return answerNode.toString();
+                }
             }
 
             return "لم أتمكن من الحصول على إجابة من سيرفر الـ AI.";
